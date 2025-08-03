@@ -44,19 +44,14 @@
                             {{ $message->message }}
                         </div>
                     </div>
-
-                    <!-- Example message: Received -->
-                    {{-- <div class="flex justify-start">
-                        <div class="max-w-xs px-4 py-2 rounded-2xl shadow bg-gray-200 text-gray-800">
-                            Hello! Got your message.
-                        </div>
-                    </div> --}}
                 @endforeach
             </div>
 
+            <div id="typing -indicator" class="px-4 pb-1 text-xs text-gray-400 italic"></div>
+
             <!-- Message Input -->
             <form wire:submit.prevent='submit' class="p-4 border-t bg-white flex items-center gap-2">
-                <input type="text" wire:model='newMessage'
+                <input type="text" wire:model.live='newMessage'
                     class="flex-1 border border-gray-300 rounded-full px-4 py-2 text-sm focus:outline-none focus:ring focus:ring-blue-300"
                     placeholder="Type your message..." />
                 <button type="submit"
@@ -67,3 +62,24 @@
         </div>
     </div>
 </div>
+
+
+<script>
+    document.addEventListener('livewire:initialized', () => {
+        Livewire.on('userTyping', (event) => {
+            console.log(event);
+            window.Echo.private(`chat.${event.selectedUserID}`).whisper("typing", {
+                userID: event.userID,
+                userName: event.userName
+            });
+        });
+        window.Echo.private(`chat.{{ $loginID }}`).listenForWhisper("typing", (event) => {
+            var t = document.getElementById("typing -indicator");
+            t.innerText = `${event.userName} is typing...`;
+
+            setTimeout(() => {
+                t.innerText = "";
+            }, 2000);
+        });
+    });
+</script>
